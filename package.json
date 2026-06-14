@@ -1,0 +1,16 @@
+{
+  "name": "world-cup-2026",
+  "version": "1.0.0",
+  "description": "FIFA World Cup 2026 live scores",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac"
+  },
+  "keywords": [],
+  "author": "Mick McGuinness",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^42.4.0"
+  }
+}
