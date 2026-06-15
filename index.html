@@ -929,6 +929,18 @@ function groupsForView(rawStandings, games) {
   return groups.length ? groups : scheduleStandingGroups(games)
 }
 
+function buildTeamGroupMap(groups) {
+  const map = {}
+  groups.forEach((group, idx) => {
+    const letter = groupLetterFromName(group.name, idx)
+    group.teams.forEach(t => {
+      if (t.abbr) map[t.abbr.toUpperCase()] = letter
+      if (t.name) map[t.name.toLowerCase()] = letter
+    })
+  })
+  return map
+}
+
 function teamFromStanding(t) {
   return {
     id: '',
@@ -1017,12 +1029,19 @@ function shortDate(date) {
   return date.toLocaleDateString('en-GB', { day:'2-digit', month:'short' })
 }
 
-function gameCardHTML(g) {
+function gameCardHTML(g, teamGroupMap = {}) {
   const isLive = g.state === 'in', isPost = g.state === 'post'
   const statusClass = isLive ? 'g-live' : isPost ? 'g-post' : 'g-pre'
   const statusTxt = isLive
     ? `<span class="ldot"></span> LIVE · ${esc(g.clock)}`
-    : isPost ? `✓ ${esc(g.desc)}` : esc(g.desc)
+    : isPost ? `✓ ${esc(g.desc)}` : `KO ${esc(fmt(g.date))}`
+
+  let groupLabel = slugLabel(g.group)
+  if (groupLabel === 'Group Stage') {
+    const letter = teamGroupMap[(g.h.abbr || '').toUpperCase()] || teamGroupMap[(g.a.abbr || '').toUpperCase()]
+                || teamGroupMap[(g.h.short || '').toLowerCase()] || teamGroupMap[(g.a.short || '').toLowerCase()]
+    if (letter) groupLabel = `Group ${letter}`
+  }
 
   const scoreHTML = g.state !== 'pre'
     ? `<div class="snums"><span class="sc">${esc(g.h.score)}</span><span class="ssep">:</span><span class="sc">${esc(g.a.score)}</span></div>`
@@ -1035,7 +1054,7 @@ function gameCardHTML(g) {
     <div class="game ${isLive ? 'game-live' : ''}">
       <div class="g-top">
         <div class="g-status ${statusClass}">${statusTxt}</div>
-        ${g.group ? `<div class="g-tag">${esc(slugLabel(g.group))}</div>` : ''}
+        ${groupLabel ? `<div class="g-tag">${esc(groupLabel)}</div>` : ''}
       </div>
       <div class="g-teams">
         <div class="team">
@@ -1052,7 +1071,7 @@ function gameCardHTML(g) {
     </div>`
 }
 
-function schedRowHTML(g, videoId = null) {
+function schedRowHTML(g, videoId = null, teamGroupMap = {}) {
   const isLive = g.state === 'in', isPost = g.state === 'post'
   const t = isLive ? g.clock : fmt(g.date)
   const tClass = `sg-t ${isLive ? 'sg-t-live' : isPost ? 'sg-t-post' : ''}`
@@ -1060,6 +1079,14 @@ function schedRowHTML(g, videoId = null) {
   const resHTML = (isLive || isPost)
     ? `<div class="sg-res ${isLive ? 'sg-res-live' : ''}">${esc(g.h.score)}:${esc(g.a.score)}</div>`
     : `<div class="sg-dash">–</div>`
+
+  let groupLabel = slugLabel(g.group)
+  if (groupLabel === 'Group Stage') {
+    const letter = teamGroupMap[(g.h.abbr || '').toUpperCase()] || teamGroupMap[(g.a.abbr || '').toUpperCase()]
+                || teamGroupMap[(g.h.short || '').toLowerCase()] || teamGroupMap[(g.a.short || '').toLowerCase()]
+    if (letter) groupLabel = `Group ${letter}`
+  }
+
   return `
     <div class="sg ${isLive ? 'sg-live' : ''}">
       <div class="${tClass}">${esc(t)}</div>
@@ -1069,7 +1096,7 @@ function schedRowHTML(g, videoId = null) {
       </div>
       <div class="sg-info">
         <div class="${matchClass}">${esc(g.h.short)} vs ${esc(g.a.short)}</div>
-        <div class="sg-meta">${esc(slugLabel(g.group))}${g.city ? ' · ' + esc(g.city) : ''}</div>
+        <div class="sg-meta">${esc(groupLabel)}${g.city ? ' · ' + esc(g.city) : ''}</div>
       </div>
       ${resHTML}
       ${videoId ? `<button class="hl-btn" data-vid="${esc(videoId)}" title="Watch highlights">▶</button>` : '<button class="hl-btn hl-btn-empty" tabindex="-1">▶</button>'}
@@ -1116,7 +1143,7 @@ function emptyHTML(title, detail) {
     </div>`
 }
 
-function renderToday(tg) {
+function renderToday(tg, teamGroupMap = {}) {
   const live = tg.filter(g => g.state === 'in')
   const pre  = tg.filter(g => g.state === 'pre')
   const post = tg.filter(g => g.state === 'post')
@@ -1124,21 +1151,21 @@ function renderToday(tg) {
 
   if (live.length > 0) {
     html += `<div class="sec">🔴 Live now</div>`
-    live.forEach(g => { html += gameCardHTML(g) })
+    live.forEach(g => { html += gameCardHTML(g, teamGroupMap) })
   }
   if (pre.length > 0) {
     html += `<div class="sec">🕐 Still to play today</div>`
-    pre.forEach(g => { html += gameCardHTML(g) })
+    pre.forEach(g => { html += gameCardHTML(g, teamGroupMap) })
   }
   if (post.length > 0) {
     html += `<div class="sec">✓ Completed today</div>`
-    post.forEach(g => { html += gameCardHTML(g) })
+    post.forEach(g => { html += gameCardHTML(g, teamGroupMap) })
   }
   if (tg.length === 0) html += emptyHTML('No matches today', 'Use All matches for the full tournament schedule')
   return html
 }
 
-function renderAllMatches(sg) {
+function renderAllMatches(sg, teamGroupMap = {}) {
   const todayKey = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' })
   let html = `<div class="sec">📅 All matches</div>`
   const days = groupByDay(sg)
@@ -1154,7 +1181,7 @@ function renderAllMatches(sg) {
       </div>`
     games.forEach(g => {
       const hl = findHighlight(g)
-      html += schedRowHTML(g, hl ? hl.videoId : null)
+      html += schedRowHTML(g, hl ? hl.videoId : null, teamGroupMap)
     })
   })
   return html
@@ -1468,11 +1495,14 @@ function render() {
     tab.classList.toggle('tab-active', tab.dataset.tab === activeTab)
   })
 
+  const groups = groupsForView(standingsCache || {}, sg)
+  const teamGroupMap = buildTeamGroupMap(groups)
+
   let html = ''
-  if (activeTab === 'all') html = renderAllMatches(sg)
+  if (activeTab === 'all') html = renderAllMatches(sg, teamGroupMap)
   else if (activeTab === 'groups') html = renderGroups(standingsCache || {}, sg)
   else if (activeTab === 'wall') html = renderWallChart(sg, standingsCache || {})
-  else html = renderToday(tg)
+  else html = renderToday(tg, teamGroupMap)
 
   const scroll = document.getElementById('main-scroll')
   scroll.innerHTML = html
