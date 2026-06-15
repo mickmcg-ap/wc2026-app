@@ -7,10 +7,17 @@
     "start": "electron .",
     "build": "electron-builder --mac"
   },
+  "build": {
+    "mac": {
+      "icon": "build/icon.icns"
+    }
+  },
   "keywords": [],
   "author": "Mick McGuinness",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^42.4.0"
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
+    "playwright-core": "^1.60.0"
   }
 }

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, nativeImage } = require('electron')
+const { app, BrowserWindow, Menu, nativeImage, ipcMain, net, shell } = require('electron')
 const path = require('path')
 
 function createWindow() {
@@ -23,6 +23,12 @@ function createWindow() {
 
   win.once('ready-to-show', () => {
     win.show()
+  })
+
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12' || (input.meta && input.alt && input.key === 'I')) {
+      win.webContents.openDevTools({ mode: 'detach' })
+    }
   })
 
   // Native app menu (minimal)
@@ -61,6 +67,22 @@ function createWindow() {
   ])
   Menu.setApplicationMenu(menu)
 }
+
+ipcMain.handle('open-external', (_, url) => shell.openExternal(url))
+
+ipcMain.handle('fetch-text', (_, url) =>
+  new Promise((resolve, reject) => {
+    const req = net.request(url)
+    const chunks = []
+    req.on('response', res => {
+      res.on('data', chunk => chunks.push(chunk))
+      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
+      res.on('error', reject)
+    })
+    req.on('error', reject)
+    req.end()
+  })
+)
 
 app.whenReady().then(() => {
   createWindow()

@@ -1,7 +1,11 @@
-const { contextBridge } = require('electron')
+const { contextBridge, ipcRenderer } = require('electron')
 
-// No special APIs needed — the renderer fetches ESPN directly via fetch()
 contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
   electron: () => process.versions.electron,
+})
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  fetchText: (url) => ipcRenderer.invoke('fetch-text', url),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
 })
