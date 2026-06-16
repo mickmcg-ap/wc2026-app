@@ -604,6 +604,162 @@
     height: 248px;
     border: none;
   }
+
+  /* Match stats modal */
+  .stats-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+  }
+  .stats-overlay.open { display: flex; }
+  .stats-modal {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 420px;
+    max-height: 580px;
+    overflow-y: auto;
+  }
+  .stats-modal::-webkit-scrollbar { width: 4px; }
+  .stats-modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .stats-close {
+    position: absolute;
+    top: 8px; right: 10px;
+    z-index: 1;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    width: 26px; height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+  }
+  .stats-header {
+    background: #0f172a;
+    padding: 20px 16px 14px;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+  }
+  .stats-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .stats-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+  }
+  .stats-team-logo {
+    width: 36px; height: 36px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 2px;
+  }
+  .stats-team-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+  }
+  .stats-score {
+    font-size: 30px;
+    font-weight: 900;
+    color: #fff;
+    min-width: 80px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats-match-status {
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .stats-match-status-live { color: var(--green-dim); }
+  .stats-match-status-post { color: var(--text-dim); }
+  .stats-body { padding: 10px 16px 14px; }
+  .stats-loading {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .stats-poss { margin-bottom: 10px; }
+  .stats-poss-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .stats-poss-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .stats-poss-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--border);
+  }
+  .stats-poss-home { background: var(--green); }
+  .stats-poss-away { background: #3b82f6; }
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 7px 0;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats-val-home { font-weight: 700; text-align: left; color: var(--green-dim); }
+  .stats-val-away { font-weight: 700; text-align: right; color: #60a5fa; }
+  .stats-lbl {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0 8px;
+  }
+  .stats-hl {
+    padding: 10px 16px 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .stats-hl-btn {
+    -webkit-app-region: no-drag;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 8px;
+    color: var(--red-pulse);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px;
+    width: 100%;
+  }
+  .stats-hl-btn:hover { background: rgba(239,68,68,0.2); }
+  .stats-clickable { cursor: pointer; }
+  .game.stats-clickable:hover { background: rgba(255,255,255,0.02); }
+  .sg.stats-clickable:hover { background: rgba(255,255,255,0.02); }
+  .wall-match.stats-clickable:hover { border-color: rgba(255,255,255,0.15); }
 </style>
 </head>
 <body>
@@ -677,6 +833,14 @@
   </div>
 </div>
 
+<!-- Stats popup -->
+<div class="stats-overlay" id="stats-overlay">
+  <div class="stats-modal">
+    <button class="stats-close" id="stats-close">✕</button>
+    <div id="stats-content"></div>
+  </div>
+</div>
+
 <!-- Highlights popup -->
 <div class="yt-overlay" id="yt-overlay">
   <div class="yt-modal">
@@ -705,7 +869,8 @@ let lastFetch = 0
 let activeTab = 'today'
 let projectKnockouts = false
 const scrollByTab = { today: 0, all: 0, groups: 0, wall: 0 }
-let highlightsCache = []
+let bbcHighlightsCache = []
+let fifaHighlightsCache = []
 
 function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, ch => ({
@@ -1051,7 +1216,7 @@ function gameCardHTML(g, teamGroupMap = {}) {
   const anClass = isPost ? (g.a.w ? 'tn tn-w' : 'tn tn-l') : 'tn'
 
   return `
-    <div class="game ${isLive ? 'game-live' : ''}">
+    <div class="game ${isLive ? 'game-live' : ''}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
       <div class="g-top">
         <div class="g-status ${statusClass}">${statusTxt}</div>
         ${groupLabel ? `<div class="g-tag">${esc(groupLabel)}</div>` : ''}
@@ -1088,7 +1253,7 @@ function schedRowHTML(g, videoId = null, teamGroupMap = {}) {
   }
 
   return `
-    <div class="sg ${isLive ? 'sg-live' : ''}">
+    <div class="sg ${isLive ? 'sg-live' : ''}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
       <div class="${tClass}">${esc(t)}</div>
       <div class="sg-flags">
         ${g.h.logo ? `<img class="sg-flag" src="${esc(g.h.logo)}" onerror="this.style.display='none'">` : ''}
@@ -1239,7 +1404,7 @@ function wallMatchHTML(g) {
   const scoreA = (isLive || isPost) ? esc(g.h.score) : '–'
   const scoreB = (isLive || isPost) ? esc(g.a.score) : '–'
   return `
-    <div class="${className}">
+    <div class="${className}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
       <div class="wm-meta"><span>${esc(shortDate(g.date))}</span><span>${esc(isLive ? g.clock : fmt(g.date))}</span></div>
       <div class="wm-team"><div class="wm-name">${esc(g.h.short)}</div><div class="wm-score">${scoreA}</div></div>
       <div class="wm-team"><div class="wm-name">${esc(g.a.short)}</div><div class="wm-score">${scoreB}</div></div>
@@ -1353,20 +1518,20 @@ function renderWallChart(sg, rawStandings) {
   return html
 }
 
-async function fetchHighlights() {
-  const url = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCpcTrCXblq78GZrTUTLWeBw'
+async function fetchChannelHighlights(channelId) {
+  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
   try {
     let text
     if (window.electronAPI?.fetchText) {
       text = await window.electronAPI.fetchText(url)
     } else {
       const res = await fetch(url)
-      if (!res.ok) return
+      if (!res.ok) return []
       text = await res.text()
     }
     const doc = new DOMParser().parseFromString(text, 'application/xml')
     const entries = [...doc.querySelectorAll('entry')]
-    const videos = entries.map(entry => {
+    return entries.map(entry => {
       let videoId = ''
       const vidEl = entry.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015', 'videoId')[0]
       if (vidEl) {
@@ -1378,9 +1543,18 @@ async function fetchHighlights() {
         } catch (_) {}
       }
       return { title: entry.querySelector('title')?.textContent || '', videoId }
-    }).filter(v => v.videoId && /^[\w-]{6,20}$/.test(v.videoId))
-    if (videos.length) { highlightsCache = videos; render() }
-  } catch (_) {}
+    }).filter(v => v.videoId && /^[\w-]{6,20}$/.test(v.videoId) && /highlights/i.test(v.title))
+  } catch (_) { return [] }
+}
+
+async function fetchHighlights() {
+  const [bbc, fifa] = await Promise.all([
+    fetchChannelHighlights('UCli0KmmXMDjcgqvsheHfv-Q'),
+    fetchChannelHighlights('UCpcTrCXblq78GZrTUTLWeBw'),
+  ])
+  if (bbc.length) bbcHighlightsCache = bbc
+  if (fifa.length) fifaHighlightsCache = fifa
+  if (bbc.length || fifa.length) render()
 }
 
 function stripDiacritics(s) {
@@ -1408,16 +1582,17 @@ function nameVariants(name) {
 }
 
 function findHighlight(g) {
-  if (g.state !== 'post' || !highlightsCache.length) return null
+  if (g.state !== 'post') return null
   const home = g.h.short.toLowerCase().trim()
   const away = g.a.short.toLowerCase().trim()
   if (!home || !away || home === 'tbd' || away === 'tbd') return null
   const homeVars = nameVariants(home)
   const awayVars = nameVariants(away)
-  return highlightsCache.find(v => {
+  const match = cache => cache.find(v => {
     const t = stripDiacritics(v.title.toLowerCase())
     return homeVars.some(h => t.includes(h)) && awayVars.some(a => t.includes(a))
-  }) || null
+  })
+  return match(bbcHighlightsCache) || match(fifaHighlightsCache) || null
 }
 
 function openHighlight(videoId) {
@@ -1432,6 +1607,164 @@ function openHighlight(videoId) {
 function closeHighlight() {
   document.getElementById('yt-overlay').classList.remove('open')
   document.getElementById('yt-frame').src = ''
+}
+
+const statsCache = {}
+
+function statVal(statsArr, name) {
+  const item = (statsArr || []).find(s => s.name === name)
+  return item ? String(item.displayValue ?? item.value ?? '') : null
+}
+
+const STAT_ROWS = [
+  ['Total Shots',   'totalShots'],
+  ['On Target',     'shotsOnTarget'],
+  ['Blocked Shots', 'blockedShots'],
+  ['Corners',       'wonCorners'],
+  ['Fouls',         'foulsCommitted'],
+  ['Yellow Cards',  'yellowCards'],
+  ['Red Cards',     'redCards'],
+  ['Saves',         'saves'],
+  ['Offsides',      'offsides'],
+]
+
+function renderStatsContent(summary, game) {
+  const teams = (summary.boxscore || {}).teams || []
+  const homeTeam = teams.find(t => t.homeAway === 'home') || teams[0]
+  const awayTeam = teams.find(t => t.homeAway === 'away') || teams[1]
+
+  if (!homeTeam && !awayTeam) {
+    return `<div class="stats-loading">No statistics available for this match.</div>`
+  }
+
+  const hS = (homeTeam || {}).statistics || []
+  const aS = (awayTeam || {}).statistics || []
+
+  const hPoss = parseFloat(statVal(hS, 'possessionPct') || '0')
+  const aPoss = parseFloat(statVal(aS, 'possessionPct') || '0')
+  const showPoss = hPoss > 0 || aPoss > 0
+
+  // Off target = total - on target (not a direct stat)
+  const hOffTarget = (() => { const t = Number(statVal(hS, 'totalShots')), o = Number(statVal(hS, 'shotsOnTarget')); return (!isNaN(t) && !isNaN(o)) ? String(t - o) : null })()
+  const aOffTarget = (() => { const t = Number(statVal(aS, 'totalShots')), o = Number(statVal(aS, 'shotsOnTarget')); return (!isNaN(t) && !isNaN(o)) ? String(t - o) : null })()
+
+  const isLive = game.state === 'in', isPost = game.state === 'post'
+  const scoreHTML = (isLive || isPost) ? `${esc(game.h.score)} : ${esc(game.a.score)}` : 'vs'
+  const statusHTML = isLive
+    ? `<div class="stats-match-status stats-match-status-live">● LIVE · ${esc(game.clock)}</div>`
+    : `<div class="stats-match-status stats-match-status-post">Full Time</div>`
+
+  const rowsHTML = STAT_ROWS.map(([label, name]) => {
+    const hVal = statVal(hS, name)
+    const aVal = statVal(aS, name)
+    if (hVal === null && aVal === null) return ''
+    return `
+      <div class="stats-row">
+        <div class="stats-val-home">${esc(hVal ?? '-')}</div>
+        <div class="stats-lbl">${esc(label)}</div>
+        <div class="stats-val-away">${esc(aVal ?? '-')}</div>
+      </div>`
+  })
+
+  // Insert off-target after on-target
+  const onTargetIdx = rowsHTML.findIndex((_, i) => STAT_ROWS[i]?.[1] === 'shotsOnTarget')
+  if (hOffTarget !== null || aOffTarget !== null) {
+    const offRow = `
+      <div class="stats-row">
+        <div class="stats-val-home">${esc(hOffTarget ?? '-')}</div>
+        <div class="stats-lbl">Off Target</div>
+        <div class="stats-val-away">${esc(aOffTarget ?? '-')}</div>
+      </div>`
+    rowsHTML.splice(onTargetIdx + 1, 0, offRow)
+  }
+
+  return `
+    <div class="stats-header">
+      <div class="stats-teams">
+        <div class="stats-team">
+          ${game.h.logo ? `<img class="stats-team-logo" src="${esc(game.h.logo)}" onerror="this.style.display='none'">` : ''}
+          <div class="stats-team-name">${esc(game.h.short)}</div>
+        </div>
+        <div class="stats-score">${scoreHTML}</div>
+        <div class="stats-team">
+          ${game.a.logo ? `<img class="stats-team-logo" src="${esc(game.a.logo)}" onerror="this.style.display='none'">` : ''}
+          <div class="stats-team-name">${esc(game.a.short)}</div>
+        </div>
+      </div>
+      ${statusHTML}
+    </div>
+    <div class="stats-body">
+      ${showPoss ? `
+        <div class="stats-poss">
+          <div class="stats-poss-labels">
+            <span>${hPoss}%</span>
+            <span class="stats-poss-lbl">Possession</span>
+            <span>${aPoss}%</span>
+          </div>
+          <div class="stats-poss-bar">
+            <div class="stats-poss-home" style="width:${hPoss}%"></div>
+            <div class="stats-poss-away" style="width:${aPoss}%"></div>
+          </div>
+        </div>` : ''}
+      ${rowsHTML.join('') || '<div class="stats-loading">No match statistics available yet.</div>'}
+    </div>
+    ${(() => { const hl = game && findHighlight(game); return hl ? `<div class="stats-hl"><button class="stats-hl-btn" data-vid="${esc(hl.videoId)}">▶ Watch highlights</button></div>` : '' })()}
+  `
+}
+
+function gameById(eventId) {
+  const all = [...(todayCache || []).map(mapGame), ...(schedCache || []).map(mapGame)]
+  return all.find(g => g.id === eventId) || null
+}
+
+async function openMatchStats(eventId) {
+  const overlay = document.getElementById('stats-overlay')
+  const content = document.getElementById('stats-content')
+  const game = gameById(eventId)
+
+  if (game) {
+    const sc = (game.state !== 'pre') ? `${esc(game.h.score)} : ${esc(game.a.score)}` : 'vs'
+    content.innerHTML = `
+      <div class="stats-header">
+        <div class="stats-teams">
+          <div class="stats-team">
+            ${game.h.logo ? `<img class="stats-team-logo" src="${esc(game.h.logo)}" onerror="this.style.display='none'">` : ''}
+            <div class="stats-team-name">${esc(game.h.short)}</div>
+          </div>
+          <div class="stats-score">${sc}</div>
+          <div class="stats-team">
+            ${game.a.logo ? `<img class="stats-team-logo" src="${esc(game.a.logo)}" onerror="this.style.display='none'">` : ''}
+            <div class="stats-team-name">${esc(game.a.short)}</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-loading">Loading statistics…</div>`
+  } else {
+    content.innerHTML = `<div class="stats-loading">Loading…</div>`
+  }
+
+  overlay.classList.add('open')
+
+  try {
+    let summary = statsCache[eventId]
+    if (!summary) {
+      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${encodeURIComponent(eventId)}`)
+      if (!res.ok) throw new Error('not ok')
+      summary = await res.json()
+      statsCache[eventId] = summary
+    }
+    if (overlay.classList.contains('open')) {
+      content.innerHTML = renderStatsContent(summary, game || {})
+    }
+  } catch (_) {
+    if (overlay.classList.contains('open')) {
+      content.innerHTML = `<div class="stats-loading">Could not load match statistics.</div>`
+    }
+  }
+}
+
+function closeMatchStats() {
+  document.getElementById('stats-overlay').classList.remove('open')
 }
 
 async function fetchData(force = false) {
@@ -1561,12 +1894,25 @@ document.getElementById('main-scroll').addEventListener('click', e => {
     return
   }
   const hlBtn = e.target.closest('.hl-btn')
-  if (hlBtn && /^[\w-]{6,20}$/.test(hlBtn.dataset.vid || '')) openHighlight(hlBtn.dataset.vid)
+  if (hlBtn && /^[\w-]{6,20}$/.test(hlBtn.dataset.vid || '')) { openHighlight(hlBtn.dataset.vid); return }
+  const gameEl = e.target.closest('[data-game-id]')
+  if (gameEl && gameEl.classList.contains('stats-clickable')) openMatchStats(gameEl.dataset.gameId)
 })
 
 document.getElementById('yt-close').addEventListener('click', closeHighlight)
 document.getElementById('yt-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeHighlight()
+})
+
+document.getElementById('stats-close').addEventListener('click', closeMatchStats)
+document.getElementById('stats-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) { closeMatchStats(); return }
+  const hlBtn = e.target.closest('.stats-hl-btn')
+  if (hlBtn && /^[\w-]{6,20}$/.test(hlBtn.dataset.vid || '')) { closeMatchStats(); openHighlight(hlBtn.dataset.vid) }
+})
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeMatchStats(); closeHighlight() }
 })
 
 // Tabs
