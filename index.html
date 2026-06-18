@@ -614,6 +614,7 @@
     display: none;
     align-items: center;
     justify-content: center;
+    padding: 20px 0;
     -webkit-app-region: no-drag;
   }
   .stats-overlay.open { display: flex; }
@@ -623,7 +624,7 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     width: 420px;
-    max-height: 580px;
+    max-height: calc(100vh - 40px);
     overflow-y: auto;
   }
   .stats-modal::-webkit-scrollbar { width: 4px; }
@@ -699,6 +700,25 @@
     text-align: center;
     color: var(--text-dim);
     font-size: 14px;
+  }
+  .stats-goals { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+  .stats-section-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 6px; }
+  .stats-goal-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 13px;
+  }
+  .stats-goal-home { text-align: left; color: var(--green-dim); font-weight: 600; }
+  .stats-goal-away { text-align: right; color: #60a5fa; font-weight: 600; }
+  .stats-goal-min {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 0 8px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .stats-poss { margin-bottom: 10px; }
   .stats-poss-labels {
@@ -1547,14 +1567,37 @@ async function fetchChannelHighlights(channelId) {
   } catch (_) { return [] }
 }
 
+function loadPersistedHighlights() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('wc2026_highlights') || '{}')
+    if (Array.isArray(saved.bbc))  bbcHighlightsCache  = saved.bbc
+    if (Array.isArray(saved.fifa)) fifaHighlightsCache = saved.fifa
+  } catch (_) {}
+}
+
+function saveHighlights() {
+  try {
+    localStorage.setItem('wc2026_highlights', JSON.stringify({ bbc: bbcHighlightsCache, fifa: fifaHighlightsCache }))
+  } catch (_) {}
+}
+
 async function fetchHighlights() {
   const [bbc, fifa] = await Promise.all([
     fetchChannelHighlights('UCli0KmmXMDjcgqvsheHfv-Q'),
     fetchChannelHighlights('UCpcTrCXblq78GZrTUTLWeBw'),
   ])
-  if (bbc.length) bbcHighlightsCache = bbc
-  if (fifa.length) fifaHighlightsCache = fifa
-  if (bbc.length || fifa.length) render()
+  let changed = false
+  if (bbc.length) {
+    const seen = new Set(bbcHighlightsCache.map(v => v.videoId))
+    const fresh = bbc.filter(v => !seen.has(v.videoId))
+    if (fresh.length) { bbcHighlightsCache = [...bbcHighlightsCache, ...fresh]; changed = true }
+  }
+  if (fifa.length) {
+    const seen = new Set(fifaHighlightsCache.map(v => v.videoId))
+    const fresh = fifa.filter(v => !seen.has(v.videoId))
+    if (fresh.length) { fifaHighlightsCache = [...fifaHighlightsCache, ...fresh]; changed = true }
+  }
+  if (changed) { saveHighlights(); render() }
 }
 
 function stripDiacritics(s) {
@@ -1648,6 +1691,28 @@ function renderStatsContent(summary, game) {
   const hOffTarget = (() => { const t = Number(statVal(hS, 'totalShots')), o = Number(statVal(hS, 'shotsOnTarget')); return (!isNaN(t) && !isNaN(o)) ? String(t - o) : null })()
   const aOffTarget = (() => { const t = Number(statVal(aS, 'totalShots')), o = Number(statVal(aS, 'shotsOnTarget')); return (!isNaN(t) && !isNaN(o)) ? String(t - o) : null })()
 
+  const goals = (summary.keyEvents || [])
+    .filter(e => e.scoringPlay === true)
+    .sort((a, b) => ((a.period || {}).number || 0) * 10000 + ((a.clock || {}).value || 0) - (((b.period || {}).number || 0) * 10000 + ((b.clock || {}).value || 0)))
+
+  const goalsHTML = goals.length ? `
+    <div class="stats-goals">
+      <div class="stats-section-lbl">Goal Scorers</div>
+      ${goals.map(g => {
+        const isHome = String((g.team || {}).id) === String(game.h.id)
+        const scorer = ((g.participants || [])[0] || {}).athlete || {}
+        const type = (g.type || {}).type || ''
+        const suffix = type === 'own-goal' ? ' (OG)' : type.startsWith('penalty') ? ' (P)' : ''
+        const name = scorer.displayName ? `${esc(scorer.displayName)}${suffix}` : ''
+        return `
+          <div class="stats-goal-row">
+            <div class="stats-goal-home">${isHome ? name : ''}</div>
+            <div class="stats-goal-min">${esc((g.clock || {}).displayValue || '')}</div>
+            <div class="stats-goal-away">${!isHome ? name : ''}</div>
+          </div>`
+      }).join('')}
+    </div>` : ''
+
   const isLive = game.state === 'in', isPost = game.state === 'post'
   const scoreHTML = (isLive || isPost) ? `${esc(game.h.score)} : ${esc(game.a.score)}` : 'vs'
   const statusHTML = isLive
@@ -1694,6 +1759,7 @@ function renderStatsContent(summary, game) {
       ${statusHTML}
     </div>
     <div class="stats-body">
+      ${goalsHTML}
       ${showPoss ? `
         <div class="stats-poss">
           <div class="stats-poss-labels">
@@ -1751,7 +1817,8 @@ async function openMatchStats(eventId) {
       const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${encodeURIComponent(eventId)}`)
       if (!res.ok) throw new Error('not ok')
       summary = await res.json()
-      statsCache[eventId] = summary
+      // Only cache once the match is final - stats/goals keep changing while live
+      if (game && game.state === 'post') statsCache[eventId] = summary
     }
     if (overlay.classList.contains('open')) {
       content.innerHTML = renderStatsContent(summary, game || {})
@@ -1926,6 +1993,7 @@ document.getElementById('tabs').addEventListener('click', e => {
 })
 
 // Boot
+loadPersistedHighlights()
 fetchData(true)
 fetchHighlights()
 setInterval(fetchHighlights, 300000)
