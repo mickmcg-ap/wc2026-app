@@ -26,7 +26,10 @@ function createWindow() {
   })
 
   win.webContents.on('before-input-event', (event, input) => {
-    if (input.key === 'F12' || (input.meta && input.alt && input.key === 'I')) {
+    // input.key reflects the character produced after modifiers — on macOS, Option
+    // remaps letter keys to accent dead-keys, so Option+I never reports key 'I'.
+    // input.code is the physical key and isn't affected by that remapping.
+    if (input.key === 'F12' || (input.meta && input.alt && input.code === 'KeyI')) {
       win.webContents.openDevTools({ mode: 'detach' })
     }
   })

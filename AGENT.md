@@ -39,3 +39,7 @@ npm run build # packages a macOS .app via electron-builder
 - On macOS, closing the window doesn't quit the app (standard macOS behaviour)
 - No devtools shortcut in the menu — use `View > Reload` or add one manually during development
 - `electron-builder` is listed only as a dev-time script dep; it must be installed separately if needed (`npm install --save-dev electron-builder`)
+
+## Verifying changes
+
+Never launch the app, drive it with Playwright/Electron automation, or take screenshots yourself to verify a change. Make the code change, explain how to check it, and ask the user to open the app and verify visually themselves.

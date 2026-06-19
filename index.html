@@ -1563,8 +1563,15 @@ async function fetchChannelHighlights(channelId) {
         } catch (_) {}
       }
       return { title: entry.querySelector('title')?.textContent || '', videoId }
-    }).filter(v => v.videoId && /^[\w-]{6,20}$/.test(v.videoId) && /highlights/i.test(v.title))
+    }).filter(v => v.videoId && /^[\w-]{6,20}$/.test(v.videoId) && isHighlightVideo(v.title))
   } catch (_) { return [] }
+}
+
+// Matches FIFA's "Highlights | Team A 1-0 Team B | ..." titles as well as
+// BBC's full-match recap format "Team A v Team B | 2026 FIFA World Cup | Group X",
+// which never uses the literal word "highlights".
+function isHighlightVideo(title) {
+  return /highlights/i.test(title) || /\sv\s.+\|.*world cup/i.test(title)
 }
 
 function loadPersistedHighlights() {
@@ -1619,6 +1626,8 @@ function nameVariants(name) {
     'ivory coast': "cote d'ivoire",
     "cote d'ivoire": 'ivory coast',
     "coted'ivoire": 'ivory coast',
+    'czechia': 'czech republic',
+    'czech republic': 'czechia',
   }
   if (subs[n]) vs.push(subs[n])
   return vs
