@@ -118,7 +118,7 @@
   /* Tabs */
   .tabs {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 4px;
     padding: 7px 8px;
     background: var(--bg-panel);
@@ -780,6 +780,186 @@
   .game.stats-clickable:hover { background: rgba(255,255,255,0.02); }
   .sg.stats-clickable:hover { background: rgba(255,255,255,0.02); }
   .wall-match.stats-clickable:hover { border-color: rgba(255,255,255,0.15); }
+
+  /* Teams tab */
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+  .team-card {
+    -webkit-app-region: no-drag;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 6px;
+    text-align: center;
+  }
+  .team-card:hover { border-color: rgba(37,194,160,0.4); background: rgba(255,255,255,0.03); }
+  .team-card-flag {
+    width: 36px; height: 36px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 2px;
+  }
+  .team-card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* Clickable team names (open team popup), wherever they appear */
+  .team-link {
+    -webkit-app-region: no-drag;
+    cursor: pointer;
+  }
+  .team-link:hover { text-decoration: underline; }
+
+  /* Team popup */
+  .team-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    -webkit-app-region: no-drag;
+  }
+  .team-overlay.open { display: flex; }
+  .team-modal {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 420px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+  .team-modal::-webkit-scrollbar { width: 4px; }
+  .team-modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .team-close {
+    position: absolute;
+    top: 8px; right: 10px;
+    z-index: 1;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    width: 26px; height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+  }
+  .team-header {
+    background: #0f172a;
+    padding: 20px 16px 14px;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .team-header-flag {
+    width: 48px; height: 48px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 3px;
+  }
+  .team-header-name { font-size: 16px; font-weight: 800; color: #fff; }
+  .team-header-group { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .team-body { padding: 4px 16px 16px; }
+  .team-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .team-row-badge {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .team-row-w { background: var(--green); }
+  .team-row-d { background: var(--text-dim); }
+  .team-row-l { background: var(--red); }
+  .team-row-flag {
+    width: 22px; height: 22px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 1px;
+    flex-shrink: 0;
+  }
+  .team-row-info { flex: 1; min-width: 0; }
+  .team-row-opp { font-size: 13px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-row-tag { font-size: 10px; color: var(--text-dim); font-weight: 700; }
+  .team-row-meta { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+  .team-row-score { font-size: 14px; font-weight: 800; color: #fff; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .team-empty { padding: 10px 0; color: var(--text-dim); font-size: 13px; text-align: center; }
+  .grp-row-active td { background: rgba(37,194,160,0.08); }
+  .grp-row-active td:first-child { box-shadow: inset 3px 0 0 var(--green); }
+
+  /* Goalscorers tab */
+  .scorers-list { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .scorer-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  .scorer-rank {
+    width: 20px;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .scorer-row:nth-child(-n+3) .scorer-rank { color: var(--yellow); }
+  .scorer-flag {
+    width: 26px; height: 26px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .scorer-info { flex: 1; min-width: 0; }
+  .scorer-name { font-size: 13px; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scorer-team { font-size: 11px; color: var(--text-dim); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scorer-goals { font-size: 16px; font-weight: 900; color: var(--green-dim); flex-shrink: 0; font-variant-numeric: tabular-nums; min-width: 18px; text-align: right; }
 </style>
 </head>
 <body>
@@ -820,6 +1000,8 @@
       <button class="tab" data-tab="all">All matches</button>
       <button class="tab" data-tab="groups">Groups</button>
       <button class="tab" data-tab="wall">Wall Chart</button>
+      <button class="tab" data-tab="teams">Teams</button>
+      <button class="tab" data-tab="scorers">Scorers</button>
     </div>
 
     <!-- Stats bar -->
@@ -869,6 +1051,14 @@
   </div>
 </div>
 
+<!-- Team popup -->
+<div class="team-overlay" id="team-overlay">
+  <div class="team-modal">
+    <button class="team-close" id="team-close">✕</button>
+    <div id="team-content"></div>
+  </div>
+</div>
+
 <script>
 const ESPN_TODAY = () => {
   const d = new Date()
@@ -888,7 +1078,7 @@ let standingsCache = null
 let lastFetch = 0
 let activeTab = 'today'
 let projectKnockouts = false
-const scrollByTab = { today: 0, all: 0, groups: 0, wall: 0 }
+const scrollByTab = { today: 0, all: 0, groups: 0, wall: 0, teams: 0, scorers: 0 }
 let bbcHighlightsCache = []
 let fifaHighlightsCache = []
 const THIRD_PLACE_WINNER_ORDER = Object.freeze(['A', 'B', 'D', 'E', 'G', 'I', 'K', 'L'])
@@ -918,6 +1108,13 @@ function esc(v) {
     '"': '&quot;',
     "'": '&#39;',
   }[ch]))
+}
+
+// Returns a class + attribute fragment that makes a team name clickable,
+// opening its team popup. Skipped for undetermined knockout slots ("TBD").
+function teamLinkFrag(abbr, name) {
+  if (!abbr && (!name || name === 'TBD')) return { cls: '', attrs: '' }
+  return { cls: ' team-link', attrs: ` data-team-abbr="${esc(abbr || '')}" data-team-name="${esc(name || '')}"` }
 }
 
 function slugLabel(s) {
@@ -1350,6 +1547,8 @@ function gameCardHTML(g, teamGroupMap = {}) {
 
   const hnClass = isPost ? (g.h.w ? 'tn tn-w' : 'tn tn-l') : 'tn'
   const anClass = isPost ? (g.a.w ? 'tn tn-w' : 'tn tn-l') : 'tn'
+  const hLink = teamLinkFrag(g.h.abbr, g.h.short)
+  const aLink = teamLinkFrag(g.a.abbr, g.a.short)
 
   return `
     <div class="game ${isLive ? 'game-live' : ''}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
@@ -1360,12 +1559,12 @@ function gameCardHTML(g, teamGroupMap = {}) {
       <div class="g-teams">
         <div class="team">
           ${g.h.logo ? `<img class="logo" src="${esc(g.h.logo)}" onerror="this.style.display='none'">` : ''}
-          <div class="ti"><div class="${hnClass}">${esc(g.h.short)}</div></div>
+          <div class="ti"><div class="${hnClass}${hLink.cls}"${hLink.attrs}>${esc(g.h.short)}</div></div>
         </div>
         <div class="scorebox">${scoreHTML}</div>
         <div class="team team-r">
           ${g.a.logo ? `<img class="logo" src="${esc(g.a.logo)}" onerror="this.style.display='none'">` : ''}
-          <div class="ti"><div class="${anClass}">${esc(g.a.short)}</div></div>
+          <div class="ti"><div class="${anClass}${aLink.cls}"${aLink.attrs}>${esc(g.a.short)}</div></div>
         </div>
       </div>
       ${g.venue ? `<div class="venue">🏟 ${esc(g.venue)}${g.city ? ' · ' + esc(g.city) : ''}</div>` : ''}
@@ -1388,6 +1587,9 @@ function schedRowHTML(g, videoId = null, teamGroupMap = {}) {
     if (letter) groupLabel = `Group ${letter}`
   }
 
+  const hLink = teamLinkFrag(g.h.abbr, g.h.short)
+  const aLink = teamLinkFrag(g.a.abbr, g.a.short)
+
   return `
     <div class="sg ${isLive ? 'sg-live' : ''}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
       <div class="${tClass}">${esc(t)}</div>
@@ -1396,7 +1598,7 @@ function schedRowHTML(g, videoId = null, teamGroupMap = {}) {
         ${g.a.logo ? `<img class="sg-flag" src="${esc(g.a.logo)}" onerror="this.style.display='none'">` : ''}
       </div>
       <div class="sg-info">
-        <div class="${matchClass}">${esc(g.h.short)} vs ${esc(g.a.short)}</div>
+        <div class="${matchClass}"><span class="${hLink.cls.trim()}"${hLink.attrs}>${esc(g.h.short)}</span> vs <span class="${aLink.cls.trim()}"${aLink.attrs}>${esc(g.a.short)}</span></div>
         <div class="sg-meta">${esc(groupLabel)}${g.city ? ' · ' + esc(g.city) : ''}</div>
       </div>
       ${resHTML}
@@ -1488,47 +1690,54 @@ function renderAllMatches(sg, teamGroupMap = {}) {
   return html
 }
 
+function groupCardHTML(group, highlightAbbr = null, highlightName = null) {
+  const hAbbr = (highlightAbbr || '').toUpperCase()
+  const hName = (highlightName || '').toLowerCase()
+  let html = `
+    <div class="grp-card">
+      <div class="grp-h"><span>${esc(group.name)}</span></div>
+      <table class="grp-table">
+        <colgroup>
+          <col class="grp-team-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+          <col class="grp-stat-col">
+        </colgroup>
+        <thead>
+          <tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>
+        </thead>
+        <tbody>`
+  group.teams.forEach(t => {
+    const isActive = hAbbr ? (t.abbr || '').toUpperCase() === hAbbr : hName && t.name.toLowerCase() === hName
+    const link = teamLinkFrag(t.abbr, t.name)
+    html += `
+      <tr class="${isActive ? 'grp-row-active' : ''}">
+        <td><div class="grp-team">${t.logo ? `<img class="grp-logo" src="${esc(t.logo)}" onerror="this.style.display='none'">` : ''}<span class="grp-name${link.cls}"${link.attrs}>${esc(t.name)}</span></div></td>
+        <td>${esc(t.played)}</td>
+        <td>${esc(t.wins)}</td>
+        <td>${esc(t.draws)}</td>
+        <td>${esc(t.losses)}</td>
+        <td>${esc(t.gf)}</td>
+        <td>${esc(t.ga)}</td>
+        <td>${esc(t.gd)}</td>
+        <td class="grp-pts">${esc(t.pts)}</td>
+      </tr>`
+  })
+  html += `</tbody></table></div>`
+  return html
+}
+
 function renderGroups(rawStandings, games) {
   const groups = groupsForView(rawStandings, games)
   if (!groups.length) return emptyHTML('No group tables available', 'Group tables need either ESPN standings or the full group-stage schedule')
 
   let html = `<div class="sec">Groups</div><div class="group-grid">`
-  groups.forEach(group => {
-    html += `
-      <div class="grp-card">
-        <div class="grp-h"><span>${esc(group.name)}</span></div>
-        <table class="grp-table">
-          <colgroup>
-            <col class="grp-team-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-            <col class="grp-stat-col">
-          </colgroup>
-          <thead>
-            <tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>
-          </thead>
-          <tbody>`
-    group.teams.forEach(t => {
-      html += `
-        <tr>
-          <td><div class="grp-team">${t.logo ? `<img class="grp-logo" src="${esc(t.logo)}" onerror="this.style.display='none'">` : ''}<span class="grp-name">${esc(t.name)}</span></div></td>
-          <td>${esc(t.played)}</td>
-          <td>${esc(t.wins)}</td>
-          <td>${esc(t.draws)}</td>
-          <td>${esc(t.losses)}</td>
-          <td>${esc(t.gf)}</td>
-          <td>${esc(t.ga)}</td>
-          <td>${esc(t.gd)}</td>
-          <td class="grp-pts">${esc(t.pts)}</td>
-        </tr>`
-    })
-    html += `</tbody></table></div>`
-  })
+  groups.forEach(group => { html += groupCardHTML(group) })
   html += `</div>`
   return html
 }
@@ -1539,11 +1748,13 @@ function wallMatchHTML(g) {
   const className = isLive ? 'wall-match wall-match-live' : isPost ? 'wall-match wall-match-post' : 'wall-match wm-pre'
   const scoreA = (isLive || isPost) ? esc(g.h.score) : '–'
   const scoreB = (isLive || isPost) ? esc(g.a.score) : '–'
+  const hLink = teamLinkFrag(g.h.abbr, g.h.short)
+  const aLink = teamLinkFrag(g.a.abbr, g.a.short)
   return `
     <div class="${className}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
       <div class="wm-meta"><span>${esc(shortDate(g.date))}</span><span>${esc(isLive ? g.clock : fmt(g.date))}</span></div>
-      <div class="wm-team"><div class="wm-name">${esc(g.h.short)}</div><div class="wm-score">${scoreA}</div></div>
-      <div class="wm-team"><div class="wm-name">${esc(g.a.short)}</div><div class="wm-score">${scoreB}</div></div>
+      <div class="wm-team"><div class="wm-name${hLink.cls}"${hLink.attrs}>${esc(g.h.short)}</div><div class="wm-score">${scoreA}</div></div>
+      <div class="wm-team"><div class="wm-name${aLink.cls}"${aLink.attrs}>${esc(g.a.short)}</div><div class="wm-score">${scoreB}</div></div>
     </div>`
 }
 
@@ -1553,7 +1764,7 @@ function miniGroupHTML(group) {
   return `
     <div class="mini-group">
       <div class="mini-group-h">${esc(group.name)}</div>
-      ${teams.map(t => `<div class="mini-team"><span class="mini-pos">${t.rank}</span><span class="grp-name">${esc(t.name)}</span><span class="mini-pts">${esc(t.pts)}</span></div>`).join('')}
+      ${teams.map(t => { const link = teamLinkFrag(t.abbr, t.name); return `<div class="mini-team"><span class="mini-pos">${t.rank}</span><span class="grp-name${link.cls}"${link.attrs}>${esc(t.name)}</span><span class="mini-pts">${esc(t.pts)}</span></div>` }).join('')}
     </div>`
 }
 
@@ -1959,6 +2170,222 @@ function closeMatchStats() {
   document.getElementById('stats-overlay').classList.remove('open')
 }
 
+function allTeamsList(groups) {
+  const map = new Map()
+  groups.forEach(group => {
+    group.teams.forEach(t => {
+      const key = (t.abbr || t.name || '').toUpperCase()
+      if (key && !map.has(key)) map.set(key, t)
+    })
+  })
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function renderTeams(groups) {
+  const teams = allTeamsList(groups)
+  if (!teams.length) return emptyHTML('No teams available', 'Team list needs the schedule or standings to load')
+
+  let html = `<div class="sec">Teams</div><div class="teams-grid">`
+  teams.forEach(t => {
+    html += `
+      <div class="team-card" data-team-abbr="${esc(t.abbr)}" data-team-name="${esc(t.name)}">
+        ${t.logo ? `<img class="team-card-flag" src="${esc(t.logo)}" onerror="this.style.display='none'">` : '<div class="team-card-flag"></div>'}
+        <div class="team-card-name">${esc(t.name)}</div>
+      </div>`
+  })
+  html += `</div>`
+  return html
+}
+
+function teamPerspective(g, abbr, name) {
+  const an = (abbr || '').toUpperCase(), nn = (name || '').toLowerCase()
+  const isHome = an ? (g.h.abbr || '').toUpperCase() === an : g.h.short.toLowerCase() === nn
+  return { isHome, self: isHome ? g.h : g.a, opp: isHome ? g.a : g.h }
+}
+
+function teamGames(sg, abbr, name) {
+  const an = (abbr || '').toUpperCase(), nn = (name || '').toLowerCase()
+  return sg
+    .filter(g => {
+      const hMatch = an ? (g.h.abbr || '').toUpperCase() === an : g.h.short.toLowerCase() === nn
+      const aMatch = an ? (g.a.abbr || '').toUpperCase() === an : g.a.short.toLowerCase() === nn
+      return hMatch || aMatch
+    })
+    .sort((a, b) => a.date - b.date)
+}
+
+function teamResultRowHTML(g, abbr, name) {
+  const { isHome, self, opp } = teamPerspective(g, abbr, name)
+  const selfScore = Number(self.score), oppScore = Number(opp.score)
+  const resultClass = selfScore > oppScore ? 'team-row-w' : selfScore < oppScore ? 'team-row-l' : 'team-row-d'
+  const resultLetter = selfScore > oppScore ? 'W' : selfScore < oppScore ? 'L' : 'D'
+  return `
+    <div class="team-row">
+      <div class="team-row-badge ${resultClass}">${resultLetter}</div>
+      ${opp.logo ? `<img class="team-row-flag" src="${esc(opp.logo)}" onerror="this.style.display='none'">` : ''}
+      <div class="team-row-info">
+        <div class="team-row-opp">${esc(opp.short)} <span class="team-row-tag">${isHome ? 'H' : 'A'}</span></div>
+        <div class="team-row-meta">${esc(shortDate(g.date))}</div>
+      </div>
+      <div class="team-row-score">${esc(self.score)} - ${esc(opp.score)}</div>
+    </div>`
+}
+
+function teamFixtureRowHTML(g, abbr, name) {
+  const { isHome, opp } = teamPerspective(g, abbr, name)
+  return `
+    <div class="team-row">
+      ${opp.logo ? `<img class="team-row-flag" src="${esc(opp.logo)}" onerror="this.style.display='none'">` : ''}
+      <div class="team-row-info">
+        <div class="team-row-opp">${esc(opp.short)} <span class="team-row-tag">${isHome ? 'H' : 'A'}</span></div>
+        <div class="team-row-meta">${esc(shortDate(g.date))} · ${esc(fmt(g.date))}</div>
+      </div>
+    </div>`
+}
+
+function teamScorerRowHTML(p) {
+  return `
+    <div class="team-row">
+      <div class="team-row-info">
+        <div class="team-row-opp">${esc(p.name)}</div>
+      </div>
+      <div class="team-row-score">${esc(p.goals)} <span class="team-row-tag">${p.goals === 1 ? 'GOAL' : 'GOALS'}</span></div>
+    </div>`
+}
+
+// Returns this team's scorers sorted by most goals first, or null while goal
+// data is still being fetched (see ensureGoalscorers).
+function teamScorers(abbr, name) {
+  if (!scorersCache) return null
+  const an = (abbr || '').toUpperCase(), nn = (name || '').toLowerCase()
+  return scorersCache
+    .filter(p => an ? (p.teamAbbr || '').toUpperCase() === an : (p.teamName || '').toLowerCase() === nn)
+    .sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))
+}
+
+// Currently open team popup, so its Scorers section can be refreshed once
+// goal data finishes loading (it's fetched lazily, see ensureGoalscorers).
+let openTeam = null
+
+function renderTeamModalContent(abbr, name) {
+  const sg = (schedCache || []).map(mapGame)
+  const groups = groupsForView(standingsCache || {}, sg)
+  const an = (abbr || '').toUpperCase(), nn = (name || '').toLowerCase()
+  const matchesTeam = t => an ? (t.abbr || '').toUpperCase() === an : t.name.toLowerCase() === nn
+
+  const team = allTeamsList(groups).find(matchesTeam)
+  const group = groups.find(gr => gr.teams.some(matchesTeam))
+  const games = teamGames(sg, abbr, name)
+  const results = games.filter(g => g.state !== 'pre')
+  const fixtures = games.filter(g => g.state === 'pre')
+  const scorers = teamScorers(abbr, name)
+
+  const html = `
+    <div class="team-header">
+      ${team?.logo ? `<img class="team-header-flag" src="${esc(team.logo)}" onerror="this.style.display='none'">` : ''}
+      <div class="team-header-name">${esc(team?.name || name)}</div>
+      ${group ? `<div class="team-header-group">${esc(group.name)}</div>` : ''}
+    </div>
+    <div class="team-body">
+      <div class="sec">Results</div>
+      ${results.length ? results.map(g => teamResultRowHTML(g, abbr, name)).join('') : '<div class="team-empty">No results yet</div>'}
+      <div class="sec">Upcoming Fixtures</div>
+      ${fixtures.length ? fixtures.map(g => teamFixtureRowHTML(g, abbr, name)).join('') : '<div class="team-empty">No fixtures scheduled</div>'}
+      ${group ? `<div class="sec">${esc(group.name)} Table</div>${groupCardHTML(group, abbr, name)}` : ''}
+      <div class="sec">Scorers</div>
+      ${scorers === null ? '<div class="team-empty">Loading…</div>' : scorers.length ? scorers.map(p => teamScorerRowHTML(p)).join('') : '<div class="team-empty">No goals scored yet</div>'}
+    </div>`
+
+  document.getElementById('team-content').innerHTML = html
+}
+
+function openTeamModal(abbr, name) {
+  openTeam = { abbr, name }
+  renderTeamModalContent(abbr, name)
+  document.getElementById('team-overlay').classList.add('open')
+  ensureGoalscorers()
+}
+
+function closeTeamModal() {
+  openTeam = null
+  document.getElementById('team-overlay').classList.remove('open')
+}
+
+let scorersCache = null
+let scorersLoading = false
+const scorersFetchedIds = new Set()
+
+// Tallies goals from a finished match's summary into `map`, keyed by athlete id.
+// Own goals count toward the team's score but are conventionally excluded from scorer charts.
+function addGoalsFromSummary(map, summary, game) {
+  const goals = (summary.keyEvents || []).filter(e => e.scoringPlay === true && ((e.type || {}).type) !== 'own-goal')
+  goals.forEach(ev => {
+    const scorer = ((ev.participants || [])[0] || {}).athlete || {}
+    if (!scorer.id || !scorer.displayName) return
+    const isHome = String((ev.team || {}).id) === String(game.h.id)
+    const team = isHome ? game.h : game.a
+    const entry = map.get(scorer.id) || { id: scorer.id, name: scorer.displayName, goals: 0, teamAbbr: team.abbr, teamName: team.short, teamLogo: team.logo }
+    entry.goals += 1
+    map.set(scorer.id, entry)
+  })
+}
+
+// Fetches match summaries for any completed games not yet tallied, aggregates
+// goalscorers, and re-renders. Cheap to call repeatedly: no-ops once everything
+// completed so far has been fetched.
+async function ensureGoalscorers() {
+  if (scorersLoading) return
+  const sg = (schedCache || []).map(mapGame)
+  const missing = sg.filter(g => g.state === 'post' && !scorersFetchedIds.has(g.id))
+  if (!missing.length) {
+    if (!scorersCache) scorersCache = []
+    return
+  }
+
+  scorersLoading = true
+  const map = new Map((scorersCache || []).map(p => [p.id, p]))
+  const results = await Promise.allSettled(missing.map(async g => {
+    let summary = statsCache[g.id]
+    if (!summary) {
+      const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${encodeURIComponent(g.id)}`)
+      if (!res.ok) throw new Error('not ok')
+      summary = await res.json()
+      statsCache[g.id] = summary
+    }
+    return { g, summary }
+  }))
+  results.forEach(r => {
+    if (r.status !== 'fulfilled') return
+    addGoalsFromSummary(map, r.value.summary, r.value.g)
+    scorersFetchedIds.add(r.value.g.id)
+  })
+  scorersCache = [...map.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))
+  scorersLoading = false
+  if (activeTab === 'scorers') render()
+  if (openTeam) renderTeamModalContent(openTeam.abbr, openTeam.name)
+}
+
+function renderGoalscorers(players) {
+  if (players === null) return `<div class="stats-loading">Loading goalscorers…</div>`
+  if (!players.length) return emptyHTML('No goals scored yet', 'Check back once matches have been played')
+
+  let html = `<div class="sec">Top Scorers</div><div class="scorers-list">`
+  players.forEach((p, i) => {
+    html += `
+      <div class="scorer-row">
+        <div class="scorer-rank">${i + 1}</div>
+        ${p.teamLogo ? `<img class="scorer-flag" src="${esc(p.teamLogo)}" onerror="this.style.display='none'">` : '<div class="scorer-flag"></div>'}
+        <div class="scorer-info">
+          <div class="scorer-name">${esc(p.name)}</div>
+          <div class="scorer-team">${esc(p.teamName)}</div>
+        </div>
+        <div class="scorer-goals">${esc(p.goals)}</div>
+      </div>`
+  })
+  html += `</div>`
+  return html
+}
+
 async function fetchData(force = false) {
   const now = Date.now()
   if (!force && now - lastFetch < 30000) return
@@ -2027,6 +2454,8 @@ function render() {
   if (activeTab === 'all') html = renderAllMatches(sg, teamGroupMap)
   else if (activeTab === 'groups') html = renderGroups(standingsCache || {}, sg)
   else if (activeTab === 'wall') html = renderWallChart(sg, standingsCache || {})
+  else if (activeTab === 'teams') html = renderTeams(groups)
+  else if (activeTab === 'scorers') { html = renderGoalscorers(scorersCache); ensureGoalscorers() }
   else html = renderToday(tg, teamGroupMap)
 
   const scroll = document.getElementById('main-scroll')
@@ -2087,6 +2516,8 @@ document.getElementById('main-scroll').addEventListener('click', e => {
   }
   const hlBtn = e.target.closest('.hl-btn')
   if (hlBtn && /^[\w-]{6,20}$/.test(hlBtn.dataset.vid || '')) { openHighlight(hlBtn.dataset.vid); return }
+  const teamTarget = e.target.closest('.team-link, .team-card')
+  if (teamTarget) { openTeamModal(teamTarget.dataset.teamAbbr, teamTarget.dataset.teamName); return }
   const gameEl = e.target.closest('[data-game-id]')
   if (gameEl && gameEl.classList.contains('stats-clickable')) openMatchStats(gameEl.dataset.gameId)
 })
@@ -2103,8 +2534,15 @@ document.getElementById('stats-overlay').addEventListener('click', e => {
   if (hlBtn && /^[\w-]{6,20}$/.test(hlBtn.dataset.vid || '')) { closeMatchStats(); openHighlight(hlBtn.dataset.vid) }
 })
 
+document.getElementById('team-close').addEventListener('click', closeTeamModal)
+document.getElementById('team-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) { closeTeamModal(); return }
+  const teamLink = e.target.closest('.team-link')
+  if (teamLink) openTeamModal(teamLink.dataset.teamAbbr, teamLink.dataset.teamName)
+})
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeMatchStats(); closeHighlight() }
+  if (e.key === 'Escape') { closeMatchStats(); closeHighlight(); closeTeamModal() }
 })
 
 // Tabs
