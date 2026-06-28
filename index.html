@@ -517,6 +517,8 @@
     -webkit-app-region: no-drag;
   }
   .refresh-btn:hover { color: var(--text-primary); }
+  .refresh-btn.refreshing { color: var(--text-primary); cursor: default; pointer-events: none; }
+  .refresh-btn.refreshing #refresh-icon { display: inline-block; animation: spin 0.8s linear infinite; }
 
   /* Loading */
   #loading {
@@ -1030,7 +1032,7 @@
     <!-- Footer -->
     <div class="foot">
       <div class="ft">Source: <b>ESPN</b> · updates every 30s</div>
-      <div class="refresh-btn" id="refresh-btn">⟳ Refresh</div>
+      <div class="refresh-btn" id="refresh-btn"><span id="refresh-icon">⟳</span> <span id="refresh-label">Refresh</span></div>
     </div>
   </div>
 </div>
@@ -2393,8 +2395,8 @@ async function fetchData(force = false) {
 
   const [todayRes, schedRes, standingsRes] = await Promise.allSettled([
     fetch(TODAY_URL()).then(r => r.json()),
-    schedCache ? Promise.resolve(null) : fetch(SCHED_URL).then(r => r.json()),
-    standingsCache ? Promise.resolve(null) : fetch(STANDINGS_URL).then(r => r.json()),
+    (!force && schedCache) ? Promise.resolve(null) : fetch(SCHED_URL).then(r => r.json()),
+    (!force && standingsCache) ? Promise.resolve(null) : fetch(STANDINGS_URL).then(r => r.json()),
   ])
 
   if (todayRes.status === 'fulfilled') todayCache = todayRes.value.events || []
@@ -2500,8 +2502,21 @@ function tickClock() {
 tickClock()
 setInterval(tickClock, 1000)
 
-// Refresh button
-document.getElementById('refresh-btn').addEventListener('click', () => fetchData(true))
+// Refresh button: forces a full re-fetch of today/schedule/standings and
+// shows a spinner + "Refreshing…" label for the duration of the request.
+document.getElementById('refresh-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('refresh-btn')
+  const label = document.getElementById('refresh-label')
+  if (btn.classList.contains('refreshing')) return
+  btn.classList.add('refreshing')
+  label.textContent = 'Refreshing…'
+  try {
+    await fetchData(true)
+  } finally {
+    btn.classList.remove('refreshing')
+    label.textContent = 'Refresh'
+  }
+})
 
 // Preserve per-tab scroll positions across refreshes and tab switches.
 document.getElementById('main-scroll').addEventListener('scroll', e => {
