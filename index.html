@@ -298,6 +298,26 @@
   }
   .grp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .grp-pts { color: #fff !important; font-weight: 900; }
+  .fav-heart {
+    color: #ef4444;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+    text-decoration: none;
+    text-shadow: 0 0 8px rgba(239,68,68,0.45);
+  }
+  .grp-team .fav-heart,
+  .mini-team .fav-heart,
+  .wm-name .fav-heart,
+  .sg-match .fav-heart,
+  .tn .fav-heart,
+  .team-card-name .fav-heart,
+  .team-header-name .fav-heart { margin-left: 4px; }
+  .wm-name .fav-heart,
+  .sg-match .fav-heart,
+  .tn .fav-heart { font-size: 10px; vertical-align: 1px; }
 
   /* Wall chart */
   .wall-wrap {
@@ -876,6 +896,10 @@
     white-space: nowrap;
     max-width: 100%;
   }
+  .team-card-fav {
+    border-color: rgba(239,68,68,0.35);
+    background: rgba(239,68,68,0.06);
+  }
 
   /* Clickable team names (open team popup), wherever they appear */
   .team-link {
@@ -944,6 +968,37 @@
   }
   .team-header-name { font-size: 16px; font-weight: 800; color: #fff; }
   .team-header-group { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .team-fav-btn {
+    -webkit-app-region: no-drag;
+    align-items: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 900;
+    gap: 6px;
+    letter-spacing: 0.8px;
+    margin-top: 4px;
+    padding: 6px 10px;
+    text-transform: uppercase;
+  }
+  .team-fav-btn:hover {
+    border-color: rgba(239,68,68,0.55);
+    color: #fff;
+  }
+  .team-fav-btn .fav-heart {
+    font-size: 13px;
+    margin: 0;
+  }
+  .team-fav-btn-on {
+    background: rgba(239,68,68,0.14);
+    border-color: rgba(239,68,68,0.55);
+    color: #fecaca;
+  }
   .team-body { padding: 4px 16px 16px; }
   .team-row {
     display: flex;
@@ -1225,6 +1280,46 @@ function esc(v) {
     '"': '&quot;',
     "'": '&#39;',
   }[ch]))
+}
+
+const FAV_TEAMS_KEY = 'wc2026:favouriteTeams'
+let favouriteTeams = (() => {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(FAV_TEAMS_KEY) || '[]'))
+  } catch {
+    return new Set()
+  }
+})()
+
+function favouriteTeamKeys(abbr, name) {
+  const keys = []
+  const a = String(abbr || '').trim().toUpperCase()
+  if (a && !isKnockoutPlaceholderName(a)) keys.push(`abbr:${a}`)
+  const n = String(name || '').trim().toLowerCase()
+  if (n && n !== 'tbd' && !isKnockoutPlaceholderName(n)) keys.push(`name:${n}`)
+  return keys
+}
+
+function isFavouriteTeam(abbr, name) {
+  return favouriteTeamKeys(abbr, name).some(key => favouriteTeams.has(key))
+}
+
+function setFavouriteTeam(abbr, name, favourite) {
+  const keys = favouriteTeamKeys(abbr, name)
+  if (!keys.length) return
+  keys.forEach(key => {
+    if (favourite) favouriteTeams.add(key)
+    else favouriteTeams.delete(key)
+  })
+  localStorage.setItem(FAV_TEAMS_KEY, JSON.stringify([...favouriteTeams]))
+}
+
+function favouriteHeartHTML(abbr, name) {
+  return isFavouriteTeam(abbr, name) ? '<span class="fav-heart" aria-label="Favourite team">&#9829;</span>' : ''
+}
+
+function teamNameHTML(abbr, name) {
+  return `${esc(name)}${favouriteHeartHTML(abbr, name)}`
 }
 
 function isKnockoutPlaceholderName(name) {
@@ -1716,12 +1811,12 @@ function gameCardHTML(g, teamGroupMap = {}) {
       <div class="g-teams">
         <div class="team">
           ${g.h.logo ? `<img class="logo" src="${esc(g.h.logo)}" onerror="this.style.display='none'">` : ''}
-          <div class="ti"><div class="${hnClass}${hLink.cls}"${hLink.attrs}>${esc(g.h.short)}</div></div>
+          <div class="ti"><div class="${hnClass}${hLink.cls}"${hLink.attrs}>${teamNameHTML(g.h.abbr, g.h.short)}</div></div>
         </div>
         <div class="scorebox">${scoreHTML}</div>
         <div class="team team-r">
           ${g.a.logo ? `<img class="logo" src="${esc(g.a.logo)}" onerror="this.style.display='none'">` : ''}
-          <div class="ti"><div class="${anClass}${aLink.cls}"${aLink.attrs}>${esc(g.a.short)}</div></div>
+          <div class="ti"><div class="${anClass}${aLink.cls}"${aLink.attrs}>${teamNameHTML(g.a.abbr, g.a.short)}</div></div>
         </div>
       </div>
       ${g.venue ? `<div class="venue">🏟 ${esc(g.venue)}${g.city ? ' · ' + esc(g.city) : ''}</div>` : ''}
@@ -1755,7 +1850,7 @@ function schedRowHTML(g, videoId = null, teamGroupMap = {}) {
         ${g.a.logo ? `<img class="sg-flag" src="${esc(g.a.logo)}" onerror="this.style.display='none'">` : ''}
       </div>
       <div class="sg-info">
-        <div class="${matchClass}"><span class="${hLink.cls.trim()}"${hLink.attrs}>${esc(g.h.short)}</span> vs <span class="${aLink.cls.trim()}"${aLink.attrs}>${esc(g.a.short)}</span></div>
+        <div class="${matchClass}"><span class="${hLink.cls.trim()}"${hLink.attrs}>${teamNameHTML(g.h.abbr, g.h.short)}</span> vs <span class="${aLink.cls.trim()}"${aLink.attrs}>${teamNameHTML(g.a.abbr, g.a.short)}</span></div>
         <div class="sg-meta">${esc(groupLabel)}${g.city ? ' · ' + esc(g.city) : ''}</div>
       </div>
       ${resHTML}
@@ -1874,7 +1969,7 @@ function groupCardHTML(group, highlightAbbr = null, highlightName = null) {
     const link = teamLinkFrag(t.abbr, t.name)
     html += `
       <tr class="${isActive ? 'grp-row-active' : ''}">
-        <td><div class="grp-team">${t.logo ? `<img class="grp-logo" src="${esc(t.logo)}" onerror="this.style.display='none'">` : ''}<span class="grp-name${link.cls}"${link.attrs}>${esc(t.name)}</span></div></td>
+        <td><div class="grp-team">${t.logo ? `<img class="grp-logo" src="${esc(t.logo)}" onerror="this.style.display='none'">` : ''}<span class="grp-name${link.cls}"${link.attrs}>${teamNameHTML(t.abbr, t.name)}</span></div></td>
         <td>${esc(t.played)}</td>
         <td>${esc(t.wins)}</td>
         <td>${esc(t.draws)}</td>
@@ -1910,8 +2005,8 @@ function wallMatchHTML(g) {
   return `
     <div class="${className}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
       <div class="wm-meta"><span>${esc(wallDate(g.date))}</span><span>${esc(isLive ? g.clock : fmt(g.date))}</span></div>
-      <div class="wm-team"><div class="wm-name${hLink.cls}"${hLink.attrs}>${esc(g.h.short)}</div><div class="wm-score">${scoreA}</div></div>
-      <div class="wm-team"><div class="wm-name${aLink.cls}"${aLink.attrs}>${esc(g.a.short)}</div><div class="wm-score">${scoreB}</div></div>
+      <div class="wm-team"><div class="wm-name${hLink.cls}"${hLink.attrs}>${teamNameHTML(g.h.abbr, g.h.short)}</div><div class="wm-score">${scoreA}</div></div>
+      <div class="wm-team"><div class="wm-name${aLink.cls}"${aLink.attrs}>${teamNameHTML(g.a.abbr, g.a.short)}</div><div class="wm-score">${scoreB}</div></div>
     </div>`
 }
 
@@ -1921,7 +2016,7 @@ function miniGroupHTML(group) {
   return `
     <div class="mini-group">
       <div class="mini-group-h">${esc(group.name)}</div>
-      ${teams.map(t => { const link = teamLinkFrag(t.abbr, t.name); return `<div class="mini-team"><span class="mini-pos">${t.rank}</span><span class="grp-name${link.cls}"${link.attrs}>${esc(t.name)}</span><span class="mini-pts">${esc(t.pts)}</span></div>` }).join('')}
+      ${teams.map(t => { const link = teamLinkFrag(t.abbr, t.name); return `<div class="mini-team"><span class="mini-pos">${t.rank}</span><span class="grp-name${link.cls}"${link.attrs}>${teamNameHTML(t.abbr, t.name)}</span><span class="mini-pts">${esc(t.pts)}</span></div>` }).join('')}
     </div>`
 }
 
@@ -2351,9 +2446,9 @@ function renderTeams(groups) {
   let html = `<div class="sec">Teams</div><div class="teams-grid">`
   teams.forEach(t => {
     html += `
-      <div class="team-card" data-team-abbr="${esc(t.abbr)}" data-team-name="${esc(t.name)}">
+      <div class="team-card ${isFavouriteTeam(t.abbr, t.name) ? 'team-card-fav' : ''}" data-team-abbr="${esc(t.abbr)}" data-team-name="${esc(t.name)}">
         ${t.logo ? `<img class="team-card-flag" src="${esc(t.logo)}" onerror="this.style.display='none'">` : '<div class="team-card-flag"></div>'}
-        <div class="team-card-name">${esc(t.name)}</div>
+        <div class="team-card-name">${teamNameHTML(t.abbr, t.name)}</div>
       </div>`
   })
   html += `</div>`
@@ -2442,12 +2537,19 @@ function renderTeamModalContent(abbr, name) {
   const results = games.filter(g => g.state !== 'pre')
   const fixtures = games.filter(g => g.state === 'pre')
   const scorers = teamScorers(abbr, name)
+  const displayAbbr = team?.abbr || abbr || ''
+  const displayName = team?.name || name || ''
+  const isFavourite = isFavouriteTeam(displayAbbr, displayName)
 
   const html = `
     <div class="team-header">
       ${team?.logo ? `<img class="team-header-flag" src="${esc(team.logo)}" onerror="this.style.display='none'">` : ''}
-      <div class="team-header-name">${esc(team?.name || name)}</div>
+      <div class="team-header-name">${teamNameHTML(displayAbbr, displayName)}</div>
       ${group ? `<div class="team-header-group">${esc(group.name)}</div>` : ''}
+      <button class="team-fav-btn ${isFavourite ? 'team-fav-btn-on' : ''}" data-team-fav-toggle data-team-abbr="${esc(displayAbbr)}" data-team-name="${esc(displayName)}" aria-pressed="${isFavourite ? 'true' : 'false'}">
+        ${favouriteHeartHTML(displayAbbr, displayName) || '<span class="fav-heart">&#9825;</span>'}
+        ${isFavourite ? 'Unfavourite' : 'Favourite'}
+      </button>
     </div>
     <div class="team-body">
       <div class="sec">Results</div>
@@ -2713,6 +2815,16 @@ document.getElementById('stats-overlay').addEventListener('click', e => {
 document.getElementById('team-close').addEventListener('click', closeTeamModal)
 document.getElementById('team-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) { closeTeamModal(); return }
+  const favBtn = e.target.closest('[data-team-fav-toggle]')
+  if (favBtn) {
+    const abbr = favBtn.dataset.teamAbbr || ''
+    const name = favBtn.dataset.teamName || ''
+    setFavouriteTeam(abbr, name, !isFavouriteTeam(abbr, name))
+    openTeam = { abbr, name }
+    renderTeamModalContent(abbr, name)
+    render()
+    return
+  }
   const teamLink = e.target.closest('.team-link')
   if (teamLink) openTeamModal(teamLink.dataset.teamAbbr, teamLink.dataset.teamName)
 })
