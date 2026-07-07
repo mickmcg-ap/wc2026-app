@@ -357,7 +357,7 @@
   .wall-right-qf { grid-area: rqf; }
   .wall-right-r16 { grid-area: rr16; }
   .wall-right-r32 { grid-area: rr32; }
-  .wall-bottom-groups { grid-area: bottom; display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px; padding-top: 14px; }
+  .wall-bottom-groups { grid-area: bottom; display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px; padding-top: 80px; }
   .wall-col {
     display: grid;
     grid-template-rows: 28px repeat(8, 55px);
@@ -375,6 +375,34 @@
     padding: 6px 8px;
     text-align: center;
     text-transform: uppercase;
+  }
+  .wall-left-r32 .wall-title,
+  .wall-right-r32 .wall-title {
+    background: #9f1239;
+    border-color: #be123c;
+  }
+  .wall-left-r16 .wall-title,
+  .wall-right-r16 .wall-title {
+    background: #7e22ce;
+    border-color: #9333ea;
+  }
+  .wall-left-qf .wall-title,
+  .wall-right-qf .wall-title {
+    background: #1d4ed8;
+    border-color: #2563eb;
+  }
+  .wall-left-sf .wall-title,
+  .wall-right-sf .wall-title {
+    background: #047857;
+    border-color: #059669;
+  }
+  .wall-centre-bronze .wall-title {
+    background: #92400e;
+    border-color: #b45309;
+  }
+  .wall-centre-final .wall-title {
+    background: #b45309;
+    border-color: #d97706;
   }
   .mini-group,
   .wall-match {
@@ -477,6 +505,27 @@
     overflow: hidden;
   }
   .wall-centre-card .wall-title { border: none; border-radius: 0; }
+  .wall-logo,
+  .wall-trophy {
+    align-items: center;
+    align-self: stretch;
+    display: flex;
+    justify-content: center;
+    min-height: 0;
+    pointer-events: none;
+  }
+  .wall-logo img {
+    display: block;
+    height: min(92px, 100%);
+    max-width: 100%;
+    object-fit: contain;
+  }
+  .wall-trophy img {
+    display: block;
+    height: min(178px, 100%);
+    max-width: 100%;
+    object-fit: contain;
+  }
   .wall-slot {
     align-self: center;
     position: relative;
@@ -1629,6 +1678,12 @@ function shortDate(date) {
   return date.toLocaleDateString('en-GB', { day:'2-digit', month:'short' })
 }
 
+function wallDate(date) {
+  const dayMonth = date.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }).toUpperCase()
+  const weekday = date.toLocaleDateString('en-GB', { weekday:'short' }).toUpperCase()
+  return `${dayMonth} (${weekday})`
+}
+
 function gameCardHTML(g, teamGroupMap = {}) {
   const isLive = g.state === 'in', isPost = g.state === 'post'
   const statusClass = isLive ? 'g-live' : isPost ? 'g-post' : 'g-pre'
@@ -1854,7 +1909,7 @@ function wallMatchHTML(g) {
   const aLink = teamLinkFrag(g.a.abbr, g.a.short)
   return `
     <div class="${className}${(isLive || isPost) ? ' stats-clickable' : ''}" data-game-id="${esc(g.id)}">
-      <div class="wm-meta"><span>${esc(shortDate(g.date))}</span><span>${esc(isLive ? g.clock : fmt(g.date))}</span></div>
+      <div class="wm-meta"><span>${esc(wallDate(g.date))}</span><span>${esc(isLive ? g.clock : fmt(g.date))}</span></div>
       <div class="wm-team"><div class="wm-name${hLink.cls}"${hLink.attrs}>${esc(g.h.short)}</div><div class="wm-score">${scoreA}</div></div>
       <div class="wm-team"><div class="wm-name${aLink.cls}"${aLink.attrs}>${esc(g.a.short)}</div><div class="wm-score">${scoreB}</div></div>
     </div>`
@@ -1947,13 +2002,19 @@ function renderWallChart(sg, rawStandings) {
 
   html += `
     <div class="wall-col wall-centre">
-      <div class="wall-centre-card" style="grid-row:3 / 5">
+      <div class="wall-logo" style="grid-row:1 / 3">
+        <img src="wc-2026-logo.png" alt="World Cup 2026">
+      </div>
+      <div class="wall-centre-card wall-centre-bronze" style="grid-row:3 / 5">
         <div class="wall-title">Bronze Final</div>
         ${bronze.map(wallMatchHTML).join('')}
       </div>
-      <div class="wall-centre-card" style="grid-row:5 / 7">
+      <div class="wall-centre-card wall-centre-final" style="grid-row:5 / 7">
         <div class="wall-title">Final</div>
         ${final.map(wallMatchHTML).join('')}
+      </div>
+      <div class="wall-trophy" style="grid-row:7 / 10">
+        <img src="worldcup_trophy.gif" alt="World Cup trophy">
       </div>
     </div>`
 
